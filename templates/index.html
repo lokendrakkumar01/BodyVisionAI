@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Body Parts Recognition System | AI-Powered Detection</title>
+    <meta name="description" content="Real-time body parts and hand recognition using AI. Detect 33 body landmarks and 21 hand points with MediaPipe technology.">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-gradient"></div>
+    <div class="bg-particles" id="particles"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+                    <path d="M12 10v4"/>
+                    <path d="M8 14l-4 6"/>
+                    <path d="M16 14l4 6"/>
+                    <path d="M12 14l-2 6"/>
+                    <path d="M12 14l2 6"/>
+                </svg>
+            </div>
+            <span class="logo-text">BodyVision<span class="logo-accent">AI</span></span>
+        </div>
+        <nav class="nav">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#demo" class="nav-link">Live Demo</a>
+            <a href="#about" class="nav-link">About</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="badge">🚀 AI-Powered Real-Time Detection</div>
+            <h1 class="hero-title">
+                Human Body Parts
+                <span class="gradient-text">Recognition System</span>
+            </h1>
+            <p class="hero-description">
+                Experience cutting-edge AI that detects and tracks 33 body landmarks and 21 hand points in real-time. 
+                Powered by Google's MediaPipe technology.
+            </p>
+            <div class="hero-buttons">
+                <button id="startBtn" class="btn btn-primary">
+                    <span class="btn-icon">▶</span>
+                    Start Detection
+                </button>
+                <a href="#features" class="btn btn-secondary">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stat-card">
+            <div class="stat-number">33</div>
+            <div class="stat-label">Body Landmarks</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">21</div>
+            <div class="stat-label">Hand Points</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">60</div>
+            <div class="stat-label">FPS Speed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">98%</div>
+            <div class="stat-label">Accuracy</div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+        <h2 class="section-title">Live Detection Demo</h2>
+        <p class="section-subtitle">Allow camera access to experience real-time body and hand tracking</p>
+        
+        <div class="demo-container">
+            <div class="video-wrapper">
+                <video id="videoInput" autoplay playsinline></video>
+                <canvas id="outputCanvas"></canvas>
+                <div class="video-overlay" id="videoOverlay">
+                    <div class="overlay-content">
+                        <div class="camera-icon">📷</div>
+                        <p>Click "Start Detection" to begin</p>
+                    </div>
+                </div>
+                <div class="loading-spinner" id="loadingSpinner">
+                    <div class="spinner"></div>
+                    <p>Loading AI Models...</p>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <h3 class="panel-title">Detection Controls</h3>
+                
+                <div class="control-group">
+                    <label class="control-label">
+                        <input type="checkbox" id="showPose" checked>
+                        <span class="checkbox-custom"></span>
+                        Show Body Pose
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="showHands" checked>
+                        <span class="checkbox-custom"></span>
+                        Show Hands
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="showLabels" checked>
+                        <span class="checkbox-custom"></span>
+                        Show Labels
+                    </label>
+                </div>
+                
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-icon">👤</span>
+                        <span class="stat-name">Body Parts:</span>
+                        <span class="stat-value" id="bodyCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">✋</span>
+                        <span class="stat-name">Hands:</span>
+                        <span class="stat-value" id="handCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-name">FPS:</span>
+                        <span class="stat-value" id="fpsCount">0</span>
+                    </div>
+                </div>
+                
+                <button id="stopBtn" class="btn btn-danger" disabled>
+                    ⏹ Stop Detection
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <h2 class="section-title">Powerful Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🦴</div>
+                <h3>Full Body Tracking</h3>
+                <p>Detect 33 key body landmarks including face, torso, arms, and legs with high precision.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🖐️</div>
+                <h3>Hand Detection</h3>
+                <p>Track 21 hand landmarks per hand, including all finger joints and fingertips.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Real-Time Processing</h3>
+                <p>Blazing fast detection at 60+ FPS, running entirely in your browser.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>All processing happens locally. Your camera feed never leaves your device.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Cross-Platform</h3>
+                <p>Works on any device with a camera - desktop, laptop, tablet, or mobile.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎨</div>
+                <h3>Visual Feedback</h3>
+                <p>Clear skeletal overlay with color-coded landmarks and connection lines.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Body Parts Info -->
+    <section id="about" class="info-section">
+        <h2 class="section-title">Detected Body Parts</h2>
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>👤 Face & Head</h3>
+                <ul>
+                    <li>Nose</li>
+                    <li>Left/Right Eye (Inner, Center, Outer)</li>
+                    <li>Left/Right Ear</li>
+                    <li>Mouth (Left, Right)</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>💪 Upper Body</h3>
+                <ul>
+                    <li>Left/Right Shoulder</li>
+                    <li>Left/Right Elbow</li>
+                    <li>Left/Right Wrist</li>
+                    <li>Left/Right Hip</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>🦵 Lower Body</h3>
+                <ul>
+                    <li>Left/Right Knee</li>
+                    <li>Left/Right Ankle</li>
+                    <li>Left/Right Heel</li>
+                    <li>Left/Right Foot Index</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>🖐️ Hand Details</h3>
+                <ul>
+                    <li>Wrist</li>
+                    <li>Thumb (4 joints)</li>
+                    <li>Index Finger (4 joints)</li>
+                    <li>Middle, Ring, Pinky (4 joints each)</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span class="logo-text">BodyVision<span class="logo-accent">AI</span></span>
+            </div>
+            <p class="footer-text">Powered by MediaPipe & TensorFlow</p>
+            <p class="footer-copyright">© 2026 Body Parts Recognition System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
