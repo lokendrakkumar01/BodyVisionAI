@@ -1,39 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Body Parts Recognition System | AI-Powered Detection</title>
-    <meta name="description" content="Real-time body parts and hand recognition using AI. Detect 33 body landmarks and 21 hand points with MediaPipe technology.">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BodyVisionAI | Advanced Body Parts Recognition System</title>
+    <meta name="description"
+        content="Real-time body parts, hand, and face recognition using AI. Advanced gesture detection, pose analytics, and multi-person tracking.">
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <!-- MediaPipe Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
     <!-- Background Effects -->
     <div class="bg-gradient"></div>
     <div class="bg-particles" id="particles"></div>
-    
+
     <!-- Header -->
     <header class="header">
         <div class="logo">
             <div class="logo-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
-                    <path d="M12 10v4"/>
-                    <path d="M8 14l-4 6"/>
-                    <path d="M16 14l4 6"/>
-                    <path d="M12 14l-2 6"/>
-                    <path d="M12 14l2 6"/>
+                    <path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
+                    <path d="M12 10v4" />
+                    <path d="M8 14l-4 6" />
+                    <path d="M16 14l4 6" />
+                    <path d="M12 14l-2 6" />
+                    <path d="M12 14l2 6" />
                 </svg>
             </div>
             <span class="logo-text">BodyVision<span class="logo-accent">AI</span></span>
@@ -41,28 +48,35 @@
         <nav class="nav">
             <a href="#features" class="nav-link">Features</a>
             <a href="#demo" class="nav-link">Live Demo</a>
-            <a href="#about" class="nav-link">About</a>
+            <button id="settingsBtn" class="nav-link settings-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                        d="M12 1v6m0 6v6M6 12H1m6 0h6m6 0h5M4.22 4.22l4.24 4.24m0 7.08l-4.24 4.24m15.56-15.56l-4.24 4.24m0 7.08l4.24 4.24">
+                    </path>
+                </svg>
+            </button>
         </nav>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
-            <div class="badge">🚀 AI-Powered Real-Time Detection</div>
+            <div class="badge">🚀 Advanced AI-Powered Detection</div>
             <h1 class="hero-title">
-                Human Body Parts
-                <span class="gradient-text">Recognition System</span>
+                Advanced Body Recognition
+                <span class="gradient-text">with AI Analytics</span>
             </h1>
             <p class="hero-description">
-                Experience cutting-edge AI that detects and tracks 33 body landmarks and 21 hand points in real-time. 
-                Powered by Google's MediaPipe technology.
+                Experience cutting-edge AI with gesture recognition, pose analytics, face mesh, multi-person tracking,
+                and real-time body analysis. Powered by Google's MediaPipe.
             </p>
             <div class="hero-buttons">
                 <button id="startBtn" class="btn btn-primary">
                     <span class="btn-icon">▶</span>
                     Start Detection
                 </button>
-                <a href="#features" class="btn btn-secondary">Learn More</a>
+                <a href="#features" class="btn btn-secondary">Explore Features</a>
             </div>
         </div>
     </section>
@@ -78,58 +92,117 @@
             <div class="stat-label">Hand Points</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">60</div>
-            <div class="stat-label">FPS Speed</div>
+            <div class="stat-number">468</div>
+            <div class="stat-label">Face Mesh Points</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">98%</div>
-            <div class="stat-label">Accuracy</div>
+            <div class="stat-number">60+</div>
+            <div class="stat-label">FPS Speed</div>
         </div>
     </section>
 
     <!-- Demo Section -->
     <section id="demo" class="demo-section">
-        <h2 class="section-title">Live Detection Demo</h2>
-        <p class="section-subtitle">Allow camera access to experience real-time body and hand tracking</p>
-        
+        <h2 class="section-title">Advanced Detection Studio</h2>
+        <p class="section-subtitle">Full-featured AI detection with gesture recognition and pose analytics</p>
+
         <div class="demo-container">
             <div class="video-wrapper">
                 <video id="videoInput" autoplay playsinline></video>
                 <canvas id="outputCanvas"></canvas>
+
+                <!-- Video Overlay -->
                 <div class="video-overlay" id="videoOverlay">
                     <div class="overlay-content">
                         <div class="camera-icon">📷</div>
                         <p>Click "Start Detection" to begin</p>
                     </div>
                 </div>
+
+                <!-- Loading Spinner -->
                 <div class="loading-spinner" id="loadingSpinner">
                     <div class="spinner"></div>
                     <p>Loading AI Models...</p>
                 </div>
+
+                <!-- Gesture Display -->
+                <div class="gesture-display" id="gestureDisplay">
+                    <div class="gesture-icon" id="gestureIcon">👋</div>
+                    <div class="gesture-name" id="gestureName">No Gesture</div>
+                </div>
+
+                <!-- Posture Score Display -->
+                <div class="posture-badge" id="postureBadge">
+                    <div class="posture-label">Posture Score</div>
+                    <div class="posture-score" id="postureScore">--</div>
+                </div>
             </div>
-            
+
+            <!-- Advanced Controls Panel -->
             <div class="controls-panel">
                 <h3 class="panel-title">Detection Controls</h3>
-                
+
+                <!-- Primary Controls -->
                 <div class="control-group">
+                    <h4 class="control-group-title">Primary Detection</h4>
                     <label class="control-label">
                         <input type="checkbox" id="showPose" checked>
                         <span class="checkbox-custom"></span>
-                        Show Body Pose
+                        <span class="label-text">🦴 Body Pose (33 points)</span>
                     </label>
                     <label class="control-label">
                         <input type="checkbox" id="showHands" checked>
                         <span class="checkbox-custom"></span>
-                        Show Hands
+                        <span class="label-text">🖐️ Hand Tracking (21 points)</span>
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="showFace">
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">😊 Face Mesh (468 points)</span>
+                    </label>
+                </div>
+
+                <!-- Advanced Features -->
+                <div class="control-group">
+                    <h4 class="control-group-title">Advanced Features</h4>
+                    <label class="control-label">
+                        <input type="checkbox" id="detectGestures" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">🤟 Gesture Recognition</span>
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="showAnalytics" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">📊 Pose Analytics</span>
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="multiPerson">
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">👥 Multi-Person Mode</span>
                     </label>
                     <label class="control-label">
                         <input type="checkbox" id="showLabels" checked>
                         <span class="checkbox-custom"></span>
-                        Show Labels
+                        <span class="label-text">🏷️ Show Labels</span>
                     </label>
                 </div>
-                
+
+                <!-- Recording Controls -->
+                <div class="control-group">
+                    <h4 class="control-group-title">Recording</h4>
+                    <div class="button-row">
+                        <button id="screenshotBtn" class="btn btn-small">
+                            📸 Screenshot
+                        </button>
+                        <button id="recordBtn" class="btn btn-small">
+                            🎥 Record
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Real-time Stats -->
                 <div class="stats-panel">
+                    <h4 class="control-group-title">Live Stats</h4>
                     <div class="stat-item">
                         <span class="stat-icon">👤</span>
                         <span class="stat-name">Body Parts:</span>
@@ -145,94 +218,211 @@
                         <span class="stat-name">FPS:</span>
                         <span class="stat-value" id="fpsCount">0</span>
                     </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">🤟</span>
+                        <span class="stat-name">Gesture:</span>
+                        <span class="stat-value" id="currentGesture">--</span>
+                    </div>
                 </div>
-                
-                <button id="stopBtn" class="btn btn-danger" disabled>
-                    ⏹ Stop Detection
-                </button>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button id="stopBtn" class="btn btn-danger" disabled>
+                        ⏹ Stop Detection
+                    </button>
+                    <button id="exportBtn" class="btn btn-secondary">
+                        💾 Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="analytics-dashboard" id="analyticsDashboard">
+            <h3 class="dashboard-title">📊 Pose Analytics Dashboard</h3>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <div class="analytics-icon">🧍</div>
+                    <div class="analytics-label">Posture Score</div>
+                    <div class="analytics-value" id="analyticsPosture">--</div>
+                    <div class="analytics-bar">
+                        <div class="analytics-bar-fill" id="postureBar"></div>
+                    </div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon">📐</div>
+                    <div class="analytics-label">Torso Lean</div>
+                    <div class="analytics-value" id="analyticsTorso">--°</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon">⚖️</div>
+                    <div class="analytics-label">Body Symmetry</div>
+                    <div class="analytics-value" id="analyticsSymmetry">--</div>
+                </div>
+                <div class="analytics-card">
+                    <div class="analytics-icon">🏃</div>
+                    <div class="analytics-label">Movement</div>
+                    <div class="analytics-value" id="analyticsMovement">STATIC</div>
+                </div>
+            </div>
+
+            <!-- Joint Angles Display -->
+            <div class="joint-angles">
+                <h4 class="joint-angles-title">Joint Angles</h4>
+                <div class="angle-grid">
+                    <div class="angle-item">
+                        <span class="angle-label">Left Elbow:</span>
+                        <span class="angle-value" id="angleLeftElbow">--°</span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">Right Elbow:</span>
+                        <span class="angle-value" id="angleRightElbow">--°</span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">Left Knee:</span>
+                        <span class="angle-value" id="angleLeftKnee">--°</span>
+                    </div>
+                    <div class="angle-item">
+                        <span class="angle-label">Right Knee:</span>
+                        <span class="angle-value" id="angleRightKnee">--°</span>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
     <section id="features" class="features-section">
-        <h2 class="section-title">Powerful Features</h2>
+        <h2 class="section-title">Advanced AI Features</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🦴</div>
                 <h3>Full Body Tracking</h3>
-                <p>Detect 33 key body landmarks including face, torso, arms, and legs with high precision.</p>
+                <p>Detect 33 key body landmarks with advanced skeletal tracking and real-time pose estimation.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🖐️</div>
-                <h3>Hand Detection</h3>
-                <p>Track 21 hand landmarks per hand, including all finger joints and fingertips.</p>
+                <h3>Advanced Hand Detection</h3>
+                <p>Track 21 hand landmarks per hand with gesture recognition for 8+ common gestures.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">😊</div>
+                <h3>Face Mesh Detection</h3>
+                <p>468-point facial landmark detection for detailed face tracking and expression analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🤟</div>
+                <h3>Gesture Recognition</h3>
+                <p>Real-time classification of hand gestures including thumbs up, peace, OK sign, and more.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Pose Analytics</h3>
+                <p>Calculate joint angles, posture scores, body alignment, and movement patterns in real-time.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Multi-Person Tracking</h3>
+                <p>Detect and track multiple people simultaneously with independent pose analysis.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📹</div>
+                <h3>Recording & Export</h3>
+                <p>Capture screenshots, record video, and export pose data in JSON format for analysis.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
-                <h3>Real-Time Processing</h3>
-                <p>Blazing fast detection at 60+ FPS, running entirely in your browser.</p>
+                <h3>Real-Time Performance</h3>
+                <p>Blazing fast detection at 60+ FPS, running entirely in your browser with WebGL acceleration.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔒</div>
                 <h3>Privacy First</h3>
-                <p>All processing happens locally. Your camera feed never leaves your device.</p>
+                <p>All processing happens locally. Your camera feed never leaves your device. 100% private.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📱</div>
-                <h3>Cross-Platform</h3>
-                <p>Works on any device with a camera - desktop, laptop, tablet, or mobile.</p>
+                <h3>Fully Responsive</h3>
+                <p>Optimized for all devices - desktop, laptop, tablet, and mobile with adaptive UI.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🎨</div>
-                <h3>Visual Feedback</h3>
-                <p>Clear skeletal overlay with color-coded landmarks and connection lines.</p>
+                <h3>Customizable Visualization</h3>
+                <p>Multiple visualization styles, color schemes, and display options to suit your needs.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💾</div>
+                <h3>Data Export</h3>
+                <p>Export landmark coordinates, analytics data, and session history in JSON/CSV formats.</p>
             </div>
         </div>
     </section>
 
-    <!-- Body Parts Info -->
-    <section id="about" class="info-section">
-        <h2 class="section-title">Detected Body Parts</h2>
-        <div class="info-grid">
-            <div class="info-card">
-                <h3>👤 Face & Head</h3>
-                <ul>
-                    <li>Nose</li>
-                    <li>Left/Right Eye (Inner, Center, Outer)</li>
-                    <li>Left/Right Ear</li>
-                    <li>Mouth (Left, Right)</li>
-                </ul>
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Advanced Settings</h2>
+                <button class="modal-close" id="closeSettings">×</button>
             </div>
-            <div class="info-card">
-                <h3>💪 Upper Body</h3>
-                <ul>
-                    <li>Left/Right Shoulder</li>
-                    <li>Left/Right Elbow</li>
-                    <li>Left/Right Wrist</li>
-                    <li>Left/Right Hip</li>
-                </ul>
-            </div>
-            <div class="info-card">
-                <h3>🦵 Lower Body</h3>
-                <ul>
-                    <li>Left/Right Knee</li>
-                    <li>Left/Right Ankle</li>
-                    <li>Left/Right Heel</li>
-                    <li>Left/Right Foot Index</li>
-                </ul>
-            </div>
-            <div class="info-card">
-                <h3>🖐️ Hand Details</h3>
-                <ul>
-                    <li>Wrist</li>
-                    <li>Thumb (4 joints)</li>
-                    <li>Index Finger (4 joints)</li>
-                    <li>Middle, Ring, Pinky (4 joints each)</li>
-                </ul>
+            <div class="modal-body">
+                <!-- Theme Settings -->
+                <div class="settings-group">
+                    <h3>Appearance</h3>
+                    <label class="control-label">
+                        <span class="label-text">Theme:</span>
+                        <select id="themeSelect" class="select-input">
+                            <option value="dark">Dark Mode</option>
+                            <option value="light">Light Mode</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </label>
+                </div>
+
+                <!-- Visualization Settings -->
+                <div class="settings-group">
+                    <h3>Visualization</h3>
+                    <label class="control-label">
+                        <span class="label-text">Skeleton Style:</span>
+                        <select id="skeletonStyle" class="select-input">
+                            <option value="default">Default</option>
+                            <option value="neon">Neon Glow</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="detailed">Detailed</option>
+                        </select>
+                    </label>
+                    <label class="control-label">
+                        <span class="label-text">Confidence Threshold:</span>
+                        <input type="range" id="confidenceSlider" min="0" max="100" value="50" class="slider">
+                        <span id="confidenceValue">50%</span>
+                    </label>
+                </div>
+
+                <!-- Performance Settings -->
+                <div class="settings-group">
+                    <h3>Performance</h3>
+                    <label class="control-label">
+                        <input type="checkbox" id="useGPU" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">Use GPU Acceleration</span>
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="smoothLandmarks" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">Smooth Landmarks</span>
+                    </label>
+                </div>
+
+                <!-- Data Settings -->
+                <div class="settings-group">
+                    <h3>Data & Privacy</h3>
+                    <button id="clearDataBtn" class="btn btn-danger">
+                        🗑️ Clear All Session Data
+                    </button>
+                </div>
             </div>
         </div>
-    </section>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -240,11 +430,15 @@
             <div class="footer-logo">
                 <span class="logo-text">BodyVision<span class="logo-accent">AI</span></span>
             </div>
-            <p class="footer-text">Powered by MediaPipe & TensorFlow</p>
-            <p class="footer-copyright">© 2026 Body Parts Recognition System. All rights reserved.</p>
+            <p class="footer-text">Powered by MediaPipe & TensorFlow | Advanced AI Detection</p>
+            <p class="footer-copyright">© 2026 BodyVisionAI. All rights reserved.</p>
         </div>
     </footer>
 
+    <!-- Load Scripts -->
+    <script src="/static/gestures.js"></script>
+    <script src="/static/analytics.js"></script>
     <script src="/static/script.js"></script>
 </body>
+
 </html>
