@@ -20,6 +20,7 @@ const showHandsCheckbox = document.getElementById('showHands');
 const showFaceCheckbox = document.getElementById('showFace');
 const detectGesturesCheckbox = document.getElementById('detectGestures');
 const showAnalyticsCheckbox = document.getElementById('showAnalytics');
+const detectObjectsCheckbox = document.getElementById('detectObjects');
 const multiPersonCheckbox = document.getElementById('multiPerson');
 const showLabelsCheckbox = document.getElementById('showLabels');
 
@@ -30,6 +31,7 @@ const bodyCountEl = document.getElementById('bodyCount');
 const handCountEl = document.getElementById('handCount');
 const fpsCountEl = document.getElementById('fpsCount');
 const currentGestureEl = document.getElementById('currentGesture');
+const objectCountEl = document.getElementById('objectCount');
 const gestureDisplay = document.getElementById('gestureDisplay');
 const gestureIcon = document.getElementById('gestureIcon');
 const gestureName = document.getElementById('gestureName');
@@ -61,9 +63,10 @@ let fps = 0;
 let mediaRecorder = null;
 let recordedChunks = [];
 
-// Initialize gesture recognizer and pose analytics
+// Initialize gesture recognizer, pose analytics, and object detector
 const gestureRecognizer = new GestureRecognizer();
 const poseAnalytics = new PoseAnalytics();
+const objectDetector = new ObjectDetector();
 
 // Results storage
 let poseResults = null;
@@ -305,6 +308,60 @@ function drawFaceMesh(landmarks) {
     }
 }
 
+// ===== OBJECT DETECTION =====
+
+async function drawObjectDetections() {
+    if (!detectObjectsCheckbox.checked || !objectDetector.isReady()) return;
+
+    try {
+        const detections = await objectDetector.detectObjects(videoElement);
+
+        // Update object count
+        objectCountEl.textContent = detections.length;
+
+        // Draw bounding boxes and labels
+        detections.forEach(detection => {
+            const [x, y, width, height] = detection.bbox;
+
+            // Scale bbox to canvas size
+            const scaleX = canvasElement.width / videoElement.videoWidth;
+            const scaleY = canvasElement.height / videoElement.videoHeight;
+
+            const scaledX = x * scaleX;
+            const scaledY = y * scaleY;
+            const scaledWidth = width * scaleX;
+            const scaledHeight = height * scaleY;
+
+            // Draw bounding box
+            canvasCtx.strokeStyle = '#00ffaa';
+            canvasCtx.lineWidth = 3;
+            canvasCtx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+
+            // Draw label background
+            const label = `${detection.emoji} ${detection.class}`;
+            const confidence = `${Math.round(detection.confidence * 100)}%`;
+            canvasCtx.font = '14px Inter';
+            const labelWidth = canvasCtx.measureText(label + ' ' + confidence).width + 16;
+
+            canvasCtx.fillStyle = 'rgba(0, 255, 170, 0.9)';
+            canvasCtx.fillRect(scaledX, scaledY - 28, labelWidth, 24);
+
+            // Draw label text
+            canvasCtx.fillStyle = '#000';
+            canvasCtx.textAlign = 'left';
+            canvasCtx.textBaseline = 'middle';
+            canvasCtx.fillText(label, scaledX + 8, scaledY - 16);
+
+            // Draw confidence
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            canvasCtx.font = '11px Inter';
+            canvasCtx.fillText(confidence, scaledX + 8 + canvasCtx.measureText(label).width + 4, scaledY - 16);
+        });
+    } catch (error) {
+        console.error('Error detecting objects:', error);
+    }
+}
+
 // ===== RENDER FRAME =====
 
 function render() {
@@ -337,6 +394,11 @@ function render() {
     // Draw hand landmarks
     if (handsResults && handsResults.multiHandLandmarks) {
         drawHandLandmarks(handsResults.multiHandLandmarks, handsResults.multiHandedness);
+    }
+
+    // Draw object detections
+    if (detectObjectsCheckbox.checked) {
+        drawObjectDetections();
     }
 
     // Calculate FPS
@@ -447,6 +509,12 @@ async function startDetection() {
         if (!hands) initHands();
         if (!faceMesh) initFaceMesh();
 
+        // Load object detection model if needed
+        if (detectObjectsCheckbox.checked && !objectDetector.isLoaded) {
+            console.log('Loading object detection model...');
+            await objectDetector.loadModel();
+        }
+
         // Get camera
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
@@ -511,6 +579,7 @@ function stopDetection() {
     bodyCountEl.textContent = '0';
     handCountEl.textContent = '0';
     fpsCountEl.textContent = '0';
+    objectCountEl.textContent = '0';
 }
 
 // ===== SCREENSHOT =====
@@ -658,6 +727,63 @@ settingsBtn.addEventListener('click', openSettings);
 closeSettings.addEventListener('click', closeSettingsModal);
 document.getElementById('clearDataBtn').addEventListener('click', clearData);
 
+// Fullscreen functionality
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const videoWrapper = document.querySelector('.video-wrapper');
+
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        // Enter fullscreen
+        if (videoWrapper.requestFullscreen) {
+            videoWrapper.requestFullscreen();
+        } else if (videoWrapper.webkitRequestFullscreen) {
+            videoWrapper.webkitRequestFullscreen(); // Safari
+        } else if (videoWrapper.msRequestFullscreen) {
+            videoWrapper.msRequestFullscreen(); // IE11
+        }
+    } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        }
+    }
+}
+
+// Update fullscreen button icon on fullscreen change
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+document.addEventListener('msfullscreenchange', updateFullscreenButton);
+
+function updateFullscreenButton() {
+    const isFullscreen = document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement;
+
+    if (isFullscreen) {
+        // Change to exit fullscreen icon
+        fullscreenBtn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
+        `;
+        fullscreenBtn.title = 'Exit Fullscreen';
+    } else {
+        // Change to enter fullscreen icon
+        fullscreenBtn.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+        `;
+        fullscreenBtn.title = 'Toggle Fullscreen';
+    }
+}
+
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
@@ -701,9 +827,117 @@ function createParticles() {
     }
 }
 
+// ===== AGRICULTURE MODULE =====
+
+const cropRecognizer = new CropRecognizer();
+const cropImageInput = document.getElementById('cropImageInput');
+const imageUploadBox = document.getElementById('imageUploadBox');
+const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+const previewImage = document.getElementById('previewImage');
+const cropSelect = document.getElementById('cropSelect');
+const identifyCropBtn = document.getElementById('identifyCropBtn');
+const cropResults = document.getElementById('cropResults');
+
+let selectedCropImage = null;
+let selectedCropType = null;
+
+// Image upload handling
+imageUploadBox.addEventListener('click', () => {
+    cropImageInput.click();
+});
+
+cropImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            previewImage.src = event.target.result;
+            previewImage.style.display = 'block';
+            uploadPlaceholder.style.display = 'none';
+            selectedCropImage = file;
+            identifyCropBtn.disabled = false;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Crop selector handling
+cropSelect.addEventListener('change', (e) => {
+    selectedCropType = e.target.value;
+    if (selectedCropType) {
+        identifyCropBtn.disabled = false;
+    }
+});
+
+// Identify crop button
+identifyCropBtn.addEventListener('click', async () => {
+    if (selectedCropType) {
+        displayCropInfo(selectedCropType);
+    } else if (selectedCropImage) {
+        // In future, use actual AI model
+        const result = await cropRecognizer.identifyCrop(selectedCropImage);
+        if (result.detected) {
+            displayCropInfo(result.crop);
+        }
+    }
+});
+
+function displayCropInfo(cropType) {
+    const info = cropRecognizer.getCropInfo(cropType);
+
+    if (!info.found) {
+        alert('Crop information not available. Please select a different crop.');
+        return;
+    }
+
+    // Show results section
+    cropResults.style.display = 'block';
+    cropResults.scrollIntoView({ behavior: 'smooth' });
+
+    // Update crop names
+    document.getElementById('resultEmoji').textContent = info.name.emoji;
+    document.getElementById('resultEnglish').textContent = info.name.english;
+    document.getElementById('resultHindi').textContent = info.name.hindi;
+
+    // Update season
+    document.getElementById('cropSeason').textContent = info.season;
+
+    // Update solutions
+    const solutionsList = document.getElementById('cropSolutions');
+    solutionsList.innerHTML = '';
+    info.solutions.forEach(solution => {
+        const li = document.createElement('li');
+        li.textContent = solution;
+        solutionsList.appendChild(li);
+    });
+
+    // Update diseases
+    const diseasesList = document.getElementById('cropDiseases');
+    diseasesList.innerHTML = '';
+    Object.entries(info.diseases).forEach(([disease, remedy]) => {
+        const diseaseItem = document.createElement('div');
+        diseaseItem.className = 'disease-item';
+        diseaseItem.innerHTML = `
+            <div class="disease-name">🔴 ${disease.replace(/_/g, ' ').toUpperCase()}</div>
+            <div class="disease-remedy">✅ ${remedy}</div>
+        `;
+        diseasesList.appendChild(diseaseItem);
+    });
+
+    // Update general tips
+    const tipsList = document.getElementById('generalTips');
+    tipsList.innerHTML = '';
+    info.generalTips.forEach(tip => {
+        const li = document.createElement('li');
+        li.textContent = tip;
+        tipsList.appendChild(li);
+    });
+}
+
 // ===== INITIALIZATION =====
 
 document.addEventListener('DOMContentLoaded', () => {
     createParticles();
     console.log('BodyVisionAI - Advanced Body Parts Recognition System initialized');
+    console.log('Agriculture module loaded with 10+ crop types');
 });

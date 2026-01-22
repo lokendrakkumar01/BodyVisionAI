@@ -583,6 +583,35 @@ body {
     background-clip: text;
 }
 
+/* ===== FULLSCREEN BUTTON ===== */
+.fullscreen-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    cursor: pointer;
+    z-index: 15;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.fullscreen-btn:hover {
+    background: rgba(99, 102, 241, 0.8);
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.fullscreen-btn svg {
+    display: block;
+}
+
 /* ===== CONTROLS PANEL ===== */
 .controls-panel {
     background: var(--bg-card);
@@ -1175,6 +1204,185 @@ body {
 
     .button-row {
         flex-direction: column;
+    }
+}
+
+/* ===== AGRICULTURE SECTION ===== */
+.agriculture-section {
+    padding: 6rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.agriculture-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.upload-area {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+}
+
+.image-upload-box {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-md);
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.image-upload-box:hover {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.upload-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.upload-hint {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.preview-image {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+}
+
+.crop-selector {
+    margin: 1.5rem 0;
+}
+
+.crop-results {
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    backdrop-filter: blur(20px);
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.crop-emoji {
+    font-size: 4rem;
+}
+
+.crop-name-english {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.crop-name-hindi {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.crop-info-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.crop-info-card h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--primary-light);
+}
+
+.solutions-list {
+    list-style: none;
+    padding: 0;
+}
+
+.solutions-list li {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 3px solid var(--secondary);
+    border-radius: 4px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.disease-item {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.disease-name {
+    font-weight: 600;
+    color: #ff6b6b;
+    margin-bottom: 0.5rem;
+}
+
+.disease-remedy {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Mobile adjustments for agriculture */
+@media (max-width: 1024px) {
+    .agriculture-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .agriculture-section {
+        padding: 3rem 1rem;
+    }
+
+    .upload-area,
+    .crop-results {
+        padding: 1.5rem;
+    }
+
+    .crop-emoji {
+        font-size: 3rem;
+    }
+
+    .crop-name-english {
+        font-size: 1.5rem;
+    }
+
+    .crop-name-hindi {
+        font-size: 1.2rem;
     }
 }
 

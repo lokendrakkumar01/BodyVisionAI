@@ -22,6 +22,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
+    <!-- TensorFlow.js for Object Detection -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.2.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -68,8 +72,8 @@
                 <span class="gradient-text">with AI Analytics</span>
             </h1>
             <p class="hero-description">
-                Experience cutting-edge AI with gesture recognition, pose analytics, face mesh, multi-person tracking,
-                and real-time body analysis. Powered by Google's MediaPipe.
+                Experience cutting-edge AI with gesture recognition, pose analytics, face mesh, object detection,
+                agriculture crop recognition, and real-time body analysis. Powered by Google's MediaPipe & TensorFlow.
             </p>
             <div class="hero-buttons">
                 <button id="startBtn" class="btn btn-primary">
@@ -136,6 +140,15 @@
                     <div class="posture-label">Posture Score</div>
                     <div class="posture-score" id="postureScore">--</div>
                 </div>
+
+                <!-- Fullscreen Button -->
+                <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3">
+                        </path>
+                    </svg>
+                </button>
             </div>
 
             <!-- Advanced Controls Panel -->
@@ -174,6 +187,11 @@
                         <input type="checkbox" id="showAnalytics" checked>
                         <span class="checkbox-custom"></span>
                         <span class="label-text">📊 Pose Analytics</span>
+                    </label>
+                    <label class="control-label">
+                        <input type="checkbox" id="detectObjects">
+                        <span class="checkbox-custom"></span>
+                        <span class="label-text">📦 Object Detection</span>
                     </label>
                     <label class="control-label">
                         <input type="checkbox" id="multiPerson">
@@ -222,6 +240,11 @@
                         <span class="stat-icon">🤟</span>
                         <span class="stat-name">Gesture:</span>
                         <span class="stat-value" id="currentGesture">--</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">📦</span>
+                        <span class="stat-name">Objects:</span>
+                        <span class="stat-value" id="objectCount">0</span>
                     </div>
                 </div>
 
@@ -286,6 +309,83 @@
                         <span class="angle-label">Right Knee:</span>
                         <span class="angle-value" id="angleRightKnee">--°</span>
                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Agriculture Section -->
+    <section id="agriculture" class="agriculture-section">
+        <h2 class="section-title">🌾 Agriculture & Crop Recognition</h2>
+        <p class="section-subtitle">Upload crop photo for identification and farming solutions</p>
+
+        <div class="agriculture-container">
+            <div class="upload-area">
+                <h3 class="panel-title">Upload Crop Image</h3>
+                <div class="image-upload-box" id="imageUploadBox">
+                    <input type="file" id="cropImageInput" accept="image/*" style="display: none;">
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <div class="upload-icon">📷</div>
+                        <p>Click or drag image here</p>
+                        <p class="upload-hint">Supported: JPG, PNG, WebP</p>
+                    </div>
+                    <img id="previewImage" class="preview-image" style="display: none;" alt="Crop preview">
+                </div>
+
+                <div class="crop-selector">
+                    <label class="control-label">
+                        <span class="label-text">Or select a crop:</span>
+                        <select id="cropSelect" class="select-input">
+                            <option value="">-- Select Crop --</option>
+                            <option value="wheat">🌾 Wheat (गेहूं)</option>
+                            <option value="rice">🌾 Rice (धान/चावल)</option>
+                            <option value="corn">🌽 Maize (मक्का)</option>
+                            <option value="sugarcane">🎋 Sugarcane (गन्ना)</option>
+                            <option value="cotton">☁️ Cotton (कपास)</option>
+                            <option value="potato">🥔 Potato (आलू)</option>
+                            <option value="tomato">🍅 Tomato (टमाटर)</option>
+                            <option value="onion">🧅 Onion (प्याज)</option>
+                            <option value="banana">🍌 Banana (केला)</option>
+                            <option value="mango">🥭 Mango (आम)</option>
+                        </select>
+                    </label>
+                </div>
+
+                <button id="identifyCropBtn" class="btn btn-primary" disabled>
+                    🔍 Identify Crop
+                </button>
+            </div>
+
+            <div class="crop-results" id="cropResults" style="display: none;">
+                <div class="result-header">
+                    <div class="crop-emoji" id="resultEmoji">🌾</div>
+                    <div class="crop-names">
+                        <div class="crop-name-english" id="resultEnglish">--</div>
+                        <div class="crop-name-hindi" id="resultHindi">--</div>
+                    </div>
+                </div>
+
+                <div class="crop-info-card">
+                    <h4>🌱 Growing Season</h4>
+                    <p id="cropSeason">--</p>
+                </div>
+
+                <div class="crop-info-card">
+                    <h4>💡 Farming Solutions</h4>
+                    <ul id="cropSolutions" class="solutions-list">
+                    </ul>
+                </div>
+
+                <div class="crop-info-card">
+                    <h4>🐛 Common Diseases & Remedies</h4>
+                    <div id="cropDiseases" class="diseases-list">
+                    </div>
+                </div>
+
+                <div class="crop-info-card">
+                    <h4>⚡ Quick Tips</h4>
+                    <ul id="generalTips" class="solutions-list">
+                    </ul>
                 </div>
             </div>
         </div>
@@ -438,6 +538,8 @@
     <!-- Load Scripts -->
     <script src="/static/gestures.js"></script>
     <script src="/static/analytics.js"></script>
+    <script src="/static/objects.js"></script>
+    <script src="/static/agriculture.js"></script>
     <script src="/static/script.js"></script>
 </body>
 

@@ -99,6 +99,30 @@ def reset_session():
     session_data['analytics'] = []
     return jsonify({'status': 'success', 'message': 'Session data reset'})
 
+@app.route('/api/agriculture/identify', methods=['POST'])
+def identify_crop():
+    """Identify crop and provide farming solutions"""
+    data = request.json
+    crop_type = data.get('crop_type', 'wheat')
+    
+    # Import crop database
+    crop_database = {
+        'wheat': {'hindi': 'गेहूं', 'english': 'Wheat', 'emoji': '🌾'},
+        'rice': {'hindi': 'धान/चावल', 'english': 'Rice', 'emoji': '🌾'},
+        'corn': {'hindi': 'मक्का', 'english': 'Maize', 'emoji': '🌽'},
+        'potato': {'hindi': 'आलू', 'english': 'Potato', 'emoji': '🥔'},
+        'tomato': {'hindi': 'टमाटर', 'english': 'Tomato', 'emoji': '🍅'},
+    }
+    
+    if crop_type in crop_database:
+        return jsonify({
+            'status': 'success',
+            'crop': crop_database[crop_type],
+            'detected': True
+        })
+    
+    return jsonify({'status': 'error', 'message': 'Crop not found'}), 404
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
