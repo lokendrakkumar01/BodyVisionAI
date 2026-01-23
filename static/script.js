@@ -614,8 +614,21 @@ async function startDetection() {
 
         if (detectObjectsCheckbox.checked && !objectDetector.isLoaded) {
             mobileOptimizer.setLoadingMessage('Loading Object Detection...');
-            await objectDetector.loadModel();
-            modelsLoaded.objectDetection = true;
+            try {
+                // Add timeout for object detection loading
+                const loadPromise = objectDetector.loadModel();
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Timeout loading Object Detection')), 10000)
+                );
+
+                await Promise.race([loadPromise, timeoutPromise]);
+                modelsLoaded.objectDetection = true;
+            } catch (error) {
+                console.warn('Object Detection failed to load or timed out:', error);
+                // Don't fail the whole app, just disable the feature
+                detectObjectsCheckbox.checked = false;
+                mobileOptimizer.showToast('⚠️ Object Detection failed to load. Skipping.');
+            }
         }
 
         // All ready!
@@ -623,7 +636,7 @@ async function startDetection() {
         mobileOptimizer.setLoadingMessage('Ready! Starting detection...');
 
         // Small delay to show "Ready" message
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Hide overlay, show canvas
         videoOverlay.style.display = 'none';
