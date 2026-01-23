@@ -126,7 +126,11 @@
                 <!-- Loading Spinner -->
                 <div class="loading-spinner" id="loadingSpinner">
                     <div class="spinner"></div>
-                    <p>Loading AI Models...</p>
+                    <p id="loadingMessage">Loading AI Models...</p>
+                    <div class="loading-progress-container">
+                        <div class="loading-progress-bar" id="loadingProgressBar"></div>
+                    </div>
+                    <p class="loading-percentage" id="loadingProgressText">0%</p>
                 </div>
 
                 <!-- Gesture Display -->
@@ -536,6 +540,7 @@
     </footer>
 
     <!-- Load Scripts -->
+    <script src="/static/mobile-optimizations.js"></script>
     <script src="/static/gestures.js"></script>
     <script src="/static/analytics.js"></script>
     <script src="/static/objects.js"></script>

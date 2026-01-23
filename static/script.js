@@ -63,6 +63,9 @@ let fps = 0;
 let mediaRecorder = null;
 let recordedChunks = [];
 
+// Initialize mobile optimizer
+const mobileOptimizer = new MobileOptimizer();
+
 // Initialize gesture recognizer, pose analytics, and object detector
 const gestureRecognizer = new GestureRecognizer();
 const poseAnalytics = new PoseAnalytics();
@@ -72,6 +75,16 @@ const objectDetector = new ObjectDetector();
 let poseResults = null;
 let handsResults = null;
 let faceMeshResults = null;
+
+// Model loading state
+let modelsLoaded = {
+    pose: false,
+    hands: false,
+    faceMesh: false,
+    objectDetection: false
+};
+
+let isInitializing = false;
 
 // Pose landmark labels
 const POSE_LANDMARKS = {
@@ -112,57 +125,99 @@ const COLORS = {
 
 // ===== INITIALIZE MEDIAPIPE MODELS =====
 
-function initPose() {
-    pose = new Pose({
-        locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-        }
-    });
+async function initPose() {
+    if (modelsLoaded.pose || pose) return;
 
-    pose.setOptions({
-        modelComplexity: 1,
-        smoothLandmarks: true,
-        enableSegmentation: false,
-        smoothSegmentation: false,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
+    try {
+        mobileOptimizer.setLoadingMessage('Loading Pose Detection...');
 
-    pose.onResults(onPoseResults);
+        pose = new Pose({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+            }
+        });
+
+        const complexity = mobileOptimizer.getModelComplexity();
+        pose.setOptions({
+            modelComplexity: complexity,
+            smoothLandmarks: true,
+            enableSegmentation: false,
+            smoothSegmentation: false,
+            minDetectionConfidence: mobileOptimizer.isMobile ? 0.6 : 0.5,
+            minTrackingConfidence: mobileOptimizer.isMobile ? 0.6 : 0.5
+        });
+
+        pose.onResults(onPoseResults);
+
+        // Initialize the model
+        await pose.initialize();
+        modelsLoaded.pose = true;
+        console.log('✅ Pose model loaded');
+    } catch (error) {
+        console.error('Error loading Pose model:', error);
+        throw error;
+    }
 }
 
-function initHands() {
-    hands = new Hands({
-        locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-        }
-    });
+async function initHands() {
+    if (modelsLoaded.hands || hands) return;
 
-    hands.setOptions({
-        maxNumHands: 2,
-        modelComplexity: 1,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
+    try {
+        mobileOptimizer.setLoadingMessage('Loading Hand Tracking...');
 
-    hands.onResults(onHandsResults);
+        hands = new Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+
+        const complexity = mobileOptimizer.getModelComplexity();
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: complexity,
+            minDetectionConfidence: mobileOptimizer.isMobile ? 0.6 : 0.5,
+            minTrackingConfidence: mobileOptimizer.isMobile ? 0.6 : 0.5
+        });
+
+        hands.onResults(onHandsResults);
+
+        await hands.initialize();
+        modelsLoaded.hands = true;
+        console.log('✅ Hands model loaded');
+    } catch (error) {
+        console.error('Error loading Hands model:', error);
+        throw error;
+    }
 }
 
-function initFaceMesh() {
-    faceMesh = new FaceMesh({
-        locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-        }
-    });
+async function initFaceMesh() {
+    if (modelsLoaded.faceMesh || faceMesh) return;
 
-    faceMesh.setOptions({
-        maxNumFaces: 1,
-        refineLandmarks: true,
-        minDetectionConfidence: 0.5,
-        minTrackingConfidence: 0.5
-    });
+    try {
+        mobileOptimizer.setLoadingMessage('Loading Face Mesh...');
 
-    faceMesh.onResults(onFaceMeshResults);
+        faceMesh = new FaceMesh({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+            }
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: !mobileOptimizer.isMobile, // Disable refinement on mobile
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(onFaceMeshResults);
+
+        await faceMesh.initialize();
+        modelsLoaded.faceMesh = true;
+        console.log('✅ Face Mesh model loaded');
+    } catch (error) {
+        console.error('Error loading Face Mesh model:', error);
+        throw error;
+    }
 }
 
 // ===== RESULTS HANDLERS =====
@@ -409,6 +464,12 @@ function render() {
     if (elapsed >= 1000) {
         fps = Math.round((frameCount * 1000) / elapsed);
         fpsCountEl.textContent = fps;
+
+        // Monitor performance on mobile
+        if (mobileOptimizer.isMobile) {
+            mobileOptimizer.monitorFPS(fps);
+        }
+
         frameCount = 0;
         lastFrameTime = now;
     }
@@ -498,28 +559,25 @@ async function processFrame() {
 // ===== START DETECTION =====
 
 async function startDetection() {
-    if (isRunning) return;
+    if (isRunning || isInitializing) return;
 
     try {
+        isInitializing = true;
         startBtn.disabled = true;
         loadingSpinner.style.display = 'flex';
 
-        // Initialize models
-        if (!pose) initPose();
-        if (!hands) initHands();
-        if (!faceMesh) initFaceMesh();
+        let loadingStep = 0;
+        const totalSteps = 4; // Camera + Pose + Hands + (optional Face/Objects)
 
-        // Load object detection model if needed
-        if (detectObjectsCheckbox.checked && !objectDetector.isLoaded) {
-            console.log('Loading object detection model...');
-            await objectDetector.loadModel();
-        }
+        // Step 1: Get camera first
+        mobileOptimizer.setLoadingMessage('Accessing camera...');
+        mobileOptimizer.updateLoadingProgress(++loadingStep, totalSteps);
 
-        // Get camera
+        const resolution = mobileOptimizer.getOptimalVideoResolution();
         const stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
+                width: { ideal: resolution.width },
+                height: { ideal: resolution.height },
                 facingMode: 'user'
             },
             audio: false
@@ -527,31 +585,83 @@ async function startDetection() {
 
         videoElement.srcObject = stream;
 
-        videoElement.onloadedmetadata = () => {
-            // Set canvas size
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+            videoElement.onloadedmetadata = resolve;
+        });
 
-            // Hide overlay, show canvas
-            videoOverlay.style.display = 'none';
-            loadingSpinner.style.display = 'none';
-            canvasElement.style.display = 'block';
+        // Set canvas size
+        canvasElement.width = videoElement.videoWidth;
+        canvasElement.height = videoElement.videoHeight;
 
-            // Update UI
-            isRunning = true;
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            lastFrameTime = performance.now();
+        // Step 2: Initialize essential models (Pose)
+        if (showPoseCheckbox.checked && !modelsLoaded.pose) {
+            mobileOptimizer.updateLoadingProgress(++loadingStep, totalSteps);
+            await initPose();
+        }
 
-            // Start processing
-            processFrame();
-        };
+        // Step 3: Initialize Hands
+        if (showHandsCheckbox.checked && !modelsLoaded.hands) {
+            mobileOptimizer.updateLoadingProgress(++loadingStep, totalSteps);
+            await initHands();
+        }
+
+        // Step 4: Initialize optional features (lazy load)
+        if (showFaceCheckbox.checked && !modelsLoaded.faceMesh) {
+            mobileOptimizer.updateLoadingProgress(++loadingStep, totalSteps);
+            await initFaceMesh();
+        }
+
+        if (detectObjectsCheckbox.checked && !objectDetector.isLoaded) {
+            mobileOptimizer.setLoadingMessage('Loading Object Detection...');
+            await objectDetector.loadModel();
+            modelsLoaded.objectDetection = true;
+        }
+
+        // All ready!
+        mobileOptimizer.updateLoadingProgress(totalSteps, totalSteps);
+        mobileOptimizer.setLoadingMessage('Ready! Starting detection...');
+
+        // Small delay to show "Ready" message
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Hide overlay, show canvas
+        videoOverlay.style.display = 'none';
+        loadingSpinner.style.display = 'none';
+        canvasElement.style.display = 'block';
+
+        // Update UI
+        isRunning = true;
+        isInitializing = false;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        lastFrameTime = performance.now();
+
+        // Show success feedback
+        if (mobileOptimizer.isMobile) {
+            mobileOptimizer.vibrate(10);
+            mobileOptimizer.showToast('✅ Detection started!');
+        }
+
+        // Start processing
+        processFrame();
 
     } catch (error) {
         console.error('Error starting detection:', error);
-        alert('Could not access camera. Please ensure camera permissions are granted.');
+
+        let errorMessage = 'Could not start detection. ';
+        if (error.name === 'NotAllowedError') {
+            errorMessage += 'Please allow camera access.';
+        } else if (error.name === 'NotFoundError') {
+            errorMessage += 'No camera found.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+
+        alert(errorMessage);
         loadingSpinner.style.display = 'none';
         startBtn.disabled = false;
+        isInitializing = false;
     }
 }
 
@@ -938,6 +1048,57 @@ function displayCropInfo(cropType) {
 
 document.addEventListener('DOMContentLoaded', () => {
     createParticles();
+
+    // Initialize mobile optimizations
+    mobileOptimizer.initMobileUI();
+    mobileOptimizer.monitorConnection();
+    mobileOptimizer.checkBatteryStatus();
+
+    // Log device info
+    console.log('🎯 Device Type:', mobileOptimizer.deviceType);
+    console.log('📱 Is Mobile:', mobileOptimizer.isMobile);
+    console.log('💻 Optimal Resolution:', mobileOptimizer.getOptimalVideoResolution());
+
+    // Add lazy loading for feature toggles
+    showFaceCheckbox.addEventListener('change', async (e) => {
+        if (e.target.checked && !modelsLoaded.faceMesh && isRunning) {
+            loadingSpinner.style.display = 'flex';
+            mobileOptimizer.setLoadingMessage('Loading Face Mesh...');
+            try {
+                await initFaceMesh();
+                loadingSpinner.style.display = 'none';
+                if (mobileOptimizer.isMobile) {
+                    mobileOptimizer.showToast('✅ Face Mesh loaded!');
+                }
+            } catch (error) {
+                console.error('Failed to load Face Mesh:', error);
+                e.target.checked = false;
+                loadingSpinner.style.display = 'none';
+                alert('Failed to load Face Mesh. Please try again.');
+            }
+        }
+    });
+
+    detectObjectsCheckbox.addEventListener('change', async (e) => {
+        if (e.target.checked && !modelsLoaded.objectDetection && isRunning) {
+            loadingSpinner.style.display = 'flex';
+            mobileOptimizer.setLoadingMessage('Loading Object Detection...');
+            try {
+                await objectDetector.loadModel();
+                modelsLoaded.objectDetection = true;
+                loadingSpinner.style.display = 'none';
+                if (mobileOptimizer.isMobile) {
+                    mobileOptimizer.showToast('✅ Object Detection loaded!');
+                }
+            } catch (error) {
+                console.error('Failed to load Object Detection:', error);
+                e.target.checked = false;
+                loadingSpinner.style.display = 'none';
+                alert('Failed to load Object Detection. Please try again.');
+            }
+        }
+    });
+
     console.log('BodyVisionAI - Advanced Body Parts Recognition System initialized');
     console.log('Agriculture module loaded with 10+ crop types');
 });
