@@ -736,13 +736,54 @@ function toggleRecording() {
     }
 }
 
-function startRecording() {
+async function startRecording() {
     recordedChunks = [];
-    const stream = canvasElement.captureStream(30);
+    const canvasStream = canvasElement.captureStream(30);
+    let finalStream = canvasStream;
+    let audioStream = null;
 
-    mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9'
-    });
+    // Check if audio recording is requested
+    const recordAudio = document.getElementById('recordAudio').checked;
+
+    if (recordAudio) {
+        try {
+            audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Combine video and audio tracks
+            finalStream = new MediaStream([
+                ...canvasStream.getVideoTracks(),
+                ...audioStream.getAudioTracks()
+            ]);
+
+            if (mobileOptimizer && mobileOptimizer.isMobile) {
+                mobileOptimizer.showToast('🎙️ Microphone active');
+            }
+        } catch (error) {
+            console.error('Error accessing microphone:', error);
+            alert('Could not access microphone. Recording video only.');
+            document.getElementById('recordAudio').checked = false;
+        }
+    }
+
+    // Prefer vp9, fall back to vp8 or standard webm
+    const mimeTypes = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm'
+    ];
+
+    let mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm';
+
+    try {
+        mediaRecorder = new MediaRecorder(finalStream, {
+            mimeType: mimeType
+        });
+    } catch (e) {
+        console.warn('Failed to create MediaRecorder with options, trying default', e);
+        mediaRecorder = new MediaRecorder(finalStream);
+    }
 
     mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -751,6 +792,11 @@ function startRecording() {
     };
 
     mediaRecorder.onstop = () => {
+        // Stop all tracks (especially audio)
+        if (finalStream) {
+            finalStream.getTracks().forEach(track => track.stop());
+        }
+
         const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
